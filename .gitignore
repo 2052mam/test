@@ -1,0 +1,7 @@
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local Python tooling used for project checks
+.venv/

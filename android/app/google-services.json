@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "688251678277",
+    "project_id": "man-50b0c",
+    "storage_bucket": "man-50b0c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:688251678277:android:56dcdbca91ce7776083d2c",
+        "android_client_info": {
+          "package_name": "com.securemessenger.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcxzqfpSszxlRZzwDq1HAb7qerFM5Mbas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
