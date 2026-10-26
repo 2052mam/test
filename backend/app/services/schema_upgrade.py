@@ -1,84 +1,33 @@
-"""Idempotent, additive upgrade for pre-migration installations (SQLite/MySQL).
-
-Run with workers stopped and a database backup. Never drops or rewrites rows.
-"""
+"""Idempotent database initialization and default sticker pack seeding for Reyno Messenger Lite."""
 from sqlalchemy import inspect, text
 from app import db
 
 
+DEFAULT_STICKER_PACKS = [
+    {
+        'name': 'reyno_classics',
+        'title': 'Reyno Classics',
+        'emojis': ['😀', '😂', '🥰', '😎', '🤩', '🥳', '🤔', '😴', '😭', '🤯', '🔥', '❤️', '👍', '🙏', '🎉', '🚀'],
+    },
+    {
+        'name': 'vibes_reactions',
+        'title': 'Vibes & Reactions',
+        'emojis': ['👋', '🙌', '👏', '🤝', '✌️', '🫶', '💯', '⚡', '🌟', '💎', '☕', '🍕', '🎵', '🏆', '🛡️', '🌈'],
+    },
+]
+
+
 def upgrade_schema():
     additions = {
-        'users': {
-            # Phone-primary authentication (E.164); existing accounts keep a
-            # NULL value and may use the legacy email/password route.
-            'mobile_number': 'VARCHAR(16) NULL',
-            'mobile_verified_at': 'DATETIME NULL',
-            'allow_group_adds': 'BOOLEAN NOT NULL DEFAULT 1',
-            'archive_pin_hash': 'VARCHAR(255) NULL',
-            'archive_pin_updated_at': 'DATETIME NULL',
-            'is_limited': 'BOOLEAN NOT NULL DEFAULT 0',
-            'limited_until': 'DATETIME NULL',
-            'limited_reason': 'TEXT NULL',
-            'limited_by': 'VARCHAR(36) NULL',
-            'allow_forwarding': 'BOOLEAN NOT NULL DEFAULT 1',
-            'terms_version': 'INTEGER NOT NULL DEFAULT 0',
-            'terms_accepted_at': 'DATETIME NULL',
-        },
-        'chats': {
-            'permissions': 'JSON NULL',
-            'slow_mode_delay': 'INTEGER NOT NULL DEFAULT 0',
-            'hide_members': 'BOOLEAN NOT NULL DEFAULT 0',
-            'is_suspended': 'BOOLEAN NOT NULL DEFAULT 0',
-            'suspension_reason': 'TEXT NULL',
-            'suspended_at': 'DATETIME NULL',
-            'suspended_by': 'VARCHAR(36) NULL',
-            'is_closed': 'BOOLEAN NOT NULL DEFAULT 0',
-            'closed_reason': 'TEXT NULL',
-            'closed_at': 'DATETIME NULL',
-            'allow_forwarding': 'BOOLEAN NOT NULL DEFAULT 1',
-            'is_sponsored': 'BOOLEAN NOT NULL DEFAULT 0',
-            'sponsored_at': 'DATETIME NULL',
-            'sponsored_by': 'VARCHAR(36) NULL',
-        },
         'chat_members': {
-            'permissions': 'JSON NULL',
             'is_archived': 'BOOLEAN NOT NULL DEFAULT 0',
             'archived_at': 'DATETIME NULL',
             'pinned_at': 'DATETIME NULL',
         },
         'messages': {
-            'is_spoiler': 'BOOLEAN NOT NULL DEFAULT 0',
-            'is_scheduled': 'BOOLEAN NOT NULL DEFAULT 0',
-            'scheduled_at': 'DATETIME NULL',
-            'is_encrypted': 'BOOLEAN NOT NULL DEFAULT 0',
-            'encryption_hint': 'VARCHAR(200) NULL',
-            'is_secure': 'BOOLEAN NOT NULL DEFAULT 0',
             'latitude': 'FLOAT NULL',
             'longitude': 'FLOAT NULL',
-            'location_title': 'VARCHAR(200) NULL',
-            'live_until': 'DATETIME NULL',
-            'audio_title': 'VARCHAR(200) NULL',
-            'audio_artist': 'VARCHAR(200) NULL',
-            'audio_duration': 'FLOAT NULL',
-            'is_muted': 'BOOLEAN NOT NULL DEFAULT 0',
-            'view_duration': 'INTEGER NULL',
-            'view_expires_at': 'DATETIME NULL',
-            # Polls & quizzes (Telegram parity).
-            'poll_id': 'VARCHAR(36) NULL',
-        },
-        'user_devices': {
-            'push_token': 'VARCHAR(512) NULL',
-            'push_platform': 'VARCHAR(20) NULL',
-            'notifications_enabled': 'BOOLEAN NOT NULL DEFAULT 1',
-            'deleted_by': 'VARCHAR(36) NULL',
-            # Primary (owning) device: only it may remove itself, enable 2FA
-            # or set the archive lock.
-            'is_primary': 'BOOLEAN NOT NULL DEFAULT 0',
-            'primary_since': 'DATETIME NULL',
-        },
-        'media_files': {
-            'title': 'VARCHAR(200) NULL',
-            'artist': 'VARCHAR(200) NULL',
+            'location_title': 'VARCHAR(512) NULL',
         },
     }
     with db.engine.begin() as connection:
@@ -91,102 +40,37 @@ def upgrade_schema():
                 if column not in existing:
                     connection.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {definition}'))
 
-    # ``ALTER TABLE`` does not add the model's unique index on existing
-    # databases. Create it explicitly after the nullable column is present;
-    # NULL values remain valid for pre-phone-auth accounts.
-    with db.engine.begin() as connection:
-        inspector = inspect(connection)
-        if inspector.has_table('users'):
-            index_names = {item['name'] for item in inspector.get_indexes('users')}
-            unique_names = {item['name'] for item in inspector.get_unique_constraints('users')}
-            if 'ux_users_mobile_number' not in index_names | unique_names:
-                connection.execute(text(
-                    'CREATE UNIQUE INDEX ux_users_mobile_number ON users (mobile_number)'
-                ))
-
-    # New, self contained tables (folders, profile albums, search history, reports, stickers, gifs).
-    # create_all only creates what is missing and never rewrites existing rows.
-    from app.models.folder import ChatFolder, ChatFolderItem  # noqa: F401
-    from app.models.profile import SearchHistory, UserPhoto  # noqa: F401
-    from app.models.report import Report  # noqa: F401
     from app.models.sticker import StickerPack, Sticker  # noqa: F401
-    from app.models.gif import SavedGif  # noqa: F401
-    from app.models.message import MessageReaction  # ensure exists
-    from app.models.story import Story, StoryView  # noqa: F401
-    from app.models.user import PhoneVerification  # noqa: F401
-    from app.models.poll import Poll, PollOption, PollVote  # noqa: F401
-    from app.models.support import SecurityAlert, SupportTicket  # noqa: F401
+    from app.models.message import MessageReaction  # noqa: F401
     from app.models.settings import AppSetting  # noqa: F401
 
     db.metadata.create_all(bind=db.engine)
-
-    # Composite indexes for existing installations (create_all adds them on
-    # fresh installs via the models; older tables need them explicitly).
-    with db.engine.begin() as connection:
-        inspector = inspect(connection)
-        wanted = {
-            'messages': {
-                'ix_messages_chat_created_id':
-                    'CREATE INDEX ix_messages_chat_created_id '
-                    'ON messages (chat_id, created_at, id)',
-                'ix_messages_chat_sender_created':
-                    'CREATE INDEX ix_messages_chat_sender_created '
-                    'ON messages (chat_id, sender_id, created_at)',
-            },
-            'chat_members': {
-                'ix_chat_members_user_chat':
-                    'CREATE INDEX ix_chat_members_user_chat '
-                    'ON chat_members (user_id, chat_id)',
-            },
-        }
-        for table, indexes in wanted.items():
-            if not inspector.has_table(table):
-                continue
-            existing = {item['name'] for item in inspector.get_indexes(table)}
-            for name, ddl in indexes.items():
-                if name not in existing:
-                    connection.execute(text(ddl))
-    # Also ensure specific tables exist individually for older SQLAlchemy metadata
-    db.metadata.create_all(bind=db.engine, tables=[
-        ChatFolder.__table__, ChatFolderItem.__table__,
-        UserPhoto.__table__, SearchHistory.__table__,
-        Report.__table__, StickerPack.__table__, Sticker.__table__, SavedGif.__table__,
-        MessageReaction.__table__,
-        Story.__table__, StoryView.__table__, PhoneVerification.__table__,
-        Poll.__table__, PollOption.__table__, PollVote.__table__,
-        SupportTicket.__table__, SecurityAlert.__table__,
-    ])
-
-    # Existing installs created before the primary-device rule have no owner
-    # device at all, which would leave 2FA/archive-lock open to any session.
-    # Backfill the oldest surviving device of each account as its primary.
-    _backfill_primary_devices()
+    _seed_default_stickers()
 
 
-def _backfill_primary_devices():
-    from sqlalchemy import func as _func
-    from app.models.user import UserDevice
+def _seed_default_stickers():
+    from app.models.sticker import StickerPack, Sticker
 
-    owned = {
-        row[0] for row in db.session.query(UserDevice.user_id).filter(
-            UserDevice.is_primary.is_(True),
-            UserDevice.is_deleted.is_(False),
-        ).distinct().all()
-    }
-    candidates = db.session.query(
-        UserDevice.user_id, _func.min(UserDevice.created_at),
-    ).filter(UserDevice.is_deleted.is_(False)).group_by(
-        UserDevice.user_id).all()
-    changed = False
-    for user_id, created_at in candidates:
-        if user_id in owned:
-            continue
-        device = UserDevice.query.filter_by(
-            user_id=user_id, created_at=created_at, is_deleted=False,
-        ).first()
-        if device is not None:
-            device.is_primary = True
-            device.primary_since = device.created_at
-            changed = True
-    if changed:
+    try:
+        if StickerPack.query.count() > 0:
+            return
+        for pack_def in DEFAULT_STICKER_PACKS:
+            pack = StickerPack(
+                name=pack_def['name'],
+                title=pack_def['title'],
+                is_featured=True,
+                is_animated=False,
+            )
+            db.session.add(pack)
+            db.session.flush()
+            for idx, emoji in enumerate(pack_def['emojis']):
+                db.session.add(
+                    Sticker(
+                        pack_id=pack.id,
+                        emoji=emoji,
+                        position=idx,
+                    )
+                )
         db.session.commit()
+    except Exception:
+        db.session.rollback()

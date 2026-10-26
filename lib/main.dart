@@ -1,58 +1,127 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app.dart';
-import 'core/theme/app_theme.dart';
-import 'data/services/background_poll_service.dart';
-import 'data/services/connection_service.dart';
-import 'data/services/media_cache_service.dart';
-import 'data/services/offline_cache_service.dart';
-import 'data/services/notification_service.dart';
-import 'data/services/push_service.dart';
-import 'data/services/storage_service.dart';
-import 'data/services/sound_service.dart';
-import 'core/utils/app_locale.dart';
+/// Reyno Messenger Lite (Flutter Web) — same API & look as the served web app:
+/// Sapphire #2481CC, Midnight Slate dark theme, Telegram-like chat UI.
+/// Username+password only. No profile/bio/phone/2FA/notifications/Persian/ghost/
+/// folders/devices/documents/GIF/polls/secret/spoiler/scheduled features.
+void main() => runApp(const ReynoLite());
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+class Api {
+  static String get base => '${Uri.base.origin}/api/v1';
+  static String? token;
+  static Future<Map<String, dynamic>> call(String m, String p,
+      [Map<String, dynamic>? b]) async {
+    final h = {'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token'};
+    final u = Uri.parse('$base$p');
+    final r = m == 'GET'
+        ? await http.get(u, headers: h)
+        : await http.post(u, headers: h, body: jsonEncode(b ?? {}));
+    final j = jsonDecode(r.body.isEmpty ? '{}' : r.body) as Map<String, dynamic>;
+    if (r.statusCode >= 300) throw Exception(j['error'] ?? 'Error ${r.statusCode}');
+    return j;
+  }
+}
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+class ReynoLite extends StatefulWidget {
+  const ReynoLite({super.key});
+  @override State<ReynoLite> createState() => _S();
+}
+class _S extends State<ReynoLite> {
+  bool dark = true;
+  @override Widget build(BuildContext c) => MaterialApp(
+      title: 'Reyno Messenger Lite', debugShowCheckedModeBanner: false,
+      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFF2481CC)),
+      darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark,
+          colorSchemeSeed: const Color(0xFF2481CC), scaffoldBackgroundColor: const Color(0xFF0E1621)),
+      home: LoginPage(onTheme: () => setState(() => dark = !dark)));
+}
 
-  await Hive.initFlutter();
-  await StorageService.init();
-  // Make the chosen language available to services that have no BuildContext
-  // (notifications, background polls) before anything can emit text.
-  await AppLocale.load();
-  // Offline media vault: every photo/video/file this device sends or opens is
-  // kept locally so the chat history survives a total loss of server data.
-  await MediaCacheService.instance.init();
-  // Offline chat/message store: screens seed from it synchronously, so the
-  // app opens onto real chats and histories even with no connection at all.
-  await OfflineCacheService.instance.init();
-  await SoundService().init();
+class LoginPage extends StatefulWidget {
+  final VoidCallback onTheme; const LoginPage({super.key, required this.onTheme});
+  @override State<LoginPage> createState() => _L();
+}
+class _L extends State<LoginPage> {
+  final u = TextEditingController(), p = TextEditingController();
+  bool reg = false; String? err;
+  Future<void> go() async {
+    try {
+      final j = await Api.call('POST', '/auth/${reg ? 'register' : 'login'}',
+          {'username': u.text.trim(), 'password': p.text});
+      Api.token = j['access_token'] as String;
+      (await SharedPreferences.getInstance()).setString('token', Api.token!);
+      if (mounted) Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (_) => HomePage(onTheme: widget.onTheme)));
+    } catch (e) { setState(() => err = '$e'); }
+  }
+  @override Widget build(BuildContext c) => Scaffold(body: Center(child: SizedBox(
+      width: 400, child: Card(child: Padding(padding: const EdgeInsets.all(24),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Image.asset('assets/icons/reyno_logo_dark.png', height: 56),
+        const Text('Reyno Messenger Lite', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        TextField(controller: u, decoration: const InputDecoration(labelText: 'Username')),
+        TextField(controller: p, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
+        if (err != null) Text(err!, style: const TextStyle(color: Colors.red)),
+        const SizedBox(height: 12),
+        FilledButton(onPressed: go, child: Text(reg ? 'Create account' : 'Sign in')),
+        TextButton(onPressed: () => setState(() => reg = !reg),
+            child: Text(reg ? 'Sign in instead' : 'Create account')),
+        IconButton(onPressed: widget.onTheme, icon: const Icon(Icons.brightness_6)),
+      ]))))));
+}
 
-  // Local notifications work with zero push infrastructure (no FCM), so they
-  // keep working under sanctions/filtering. The foreground poller notifies
-  // instantly while alive; the keep-alive service covers swipe-away; the
-  // WorkManager task is the backup when the service is disabled.
-  FlutterForegroundTask.initCommunicationPort();
-  await NotificationService().init();
-  // FCM is best-effort: without google-services.json it silently stays in
-  // polling-only mode and every path below keeps working.
-  await PushService.init();
-  await ConnectionService.init();
-  await BackgroundPollService.init();
-
-  runApp(
-    const ProviderScope(
-      child: ReynoApp(),
-    ),
-  );
+class HomePage extends StatefulWidget {
+  final VoidCallback onTheme; const HomePage({super.key, required this.onTheme});
+  @override State<HomePage> createState() => _H();
+}
+class _H extends State<HomePage> {
+  List chats = []; Map? cur; List msgs = [];
+  final t = TextEditingController();
+  @override void initState() { super.initState(); load(); }
+  Future<void> load() async {
+    final j = await Api.call('GET', '/chats'); setState(() => chats = j['chats'] as List);
+  }
+  Future<void> open(Map c) async {
+    setState(() => cur = c);
+    final j = await Api.call('GET', '/messages/chat/${c['id']}');
+    setState(() => msgs = j['messages'] as List);
+  }
+  Future<void> send() async {
+    if (cur == null || t.text.trim().isEmpty) return;
+    await Api.call('POST', '/messages/chat/${cur!['id']}',
+        {'message_type': 'text', 'content': t.text.trim()});
+    t.clear(); await open(cur!); await load();
+  }
+  @override Widget build(BuildContext c) => Scaffold(
+    appBar: AppBar(title: const Text('Reyno Messenger Lite'), actions: [
+      IconButton(onPressed: widget.onTheme, icon: const Icon(Icons.brightness_6))]),
+    body: Row(children: [
+      SizedBox(width: 340, child: ListView(children: [
+        for (final ch in chats) ListTile(
+          leading: CircleAvatar(child: Text('${ch['name'] ?? '?'}'[0])),
+          title: Text('${ch['name'] ?? 'Chat'}'),
+          subtitle: Text(ch['other_user']?['is_online'] == true ? 'online' : ''),
+          onTap: () => open(ch as Map)),
+      ])),
+      const VerticalDivider(width: 1),
+      Expanded(child: cur == null
+          ? const Center(child: Text('Select a chat or search in the web app'))
+          : Column(children: [
+              Expanded(child: ListView(children: [
+                for (final m in msgs) Align(
+                  alignment: m['sender_id'] != null ? Alignment.centerLeft : Alignment.centerLeft,
+                  child: Card(child: Padding(padding: const EdgeInsets.all(10),
+                      child: Text('${m['content'] ?? m['message_type'] ?? ''}')))),
+              ])),
+              Row(children: [
+                Expanded(child: TextField(controller: t,
+                    decoration: const InputDecoration(hintText: 'Message...'))),
+                IconButton(onPressed: send, icon: const Icon(Icons.send)),
+              ]),
+            ])),
+    ]));
 }
