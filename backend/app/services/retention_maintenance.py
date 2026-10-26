@@ -1,15 +1,18 @@
-"""Automatic 72-hour data retention & manual server storage cleanup for Reyno Messenger Lite.
+"""Automatic 72-hour MEDIA retention & manual storage cleanup for Reyno Lite.
 
-For high-risk environments:
-- Automatically purges messages and media files older than 72 hours.
-- Deletes media blobs from disk permanently.
-- Provides a one-click server storage cleanup for the minimal Admin Panel
-  without exposing any user data, chats, or message contents.
+IMPORTANT (matches the original Reyno): this cleanup is for MEDIA ONLY.
+- Only the uploaded file blobs (photos, videos, voice messages) attached to
+  chat messages and older than 72 hours are removed from disk.
+- Chats, message rows, text, captions, reactions and media metadata are
+  NEVER deleted by retention. The message stays in the conversation and is
+  flagged ``media_expired`` so clients show an "expired media" placeholder.
+- Sticker assets are protected and never expired.
+- The minimal Admin Panel storage cleanup follows the same rule: it frees
+  media files only, never chats or messages.
 """
 from datetime import datetime, timedelta
 import os
 import time
-from sqlalchemy import text
 from flask import current_app
 
 from app import db
@@ -71,63 +74,53 @@ def get_last_cleanup_iso() -> str | None:
         return None
 
 
+# Message types whose *attached file* may expire. Text/location/sticker
+# messages have no expirable blob and are untouched. (Original: CHAT_ATTACHMENT_TYPES)
+CHAT_ATTACHMENT_TYPES = ('image', 'video', 'voice')
+
+
 def run_retention_maintenance(now: datetime | None = None, retention_hours: int = RETENTION_HOURS) -> dict:
-    """Purge all messages and media files older than `retention_hours` (default 72h)."""
+    """Expire media blobs older than `retention_hours` (default 72h).
+
+    Media-only: chats and messages are never deleted here. Referencing
+    messages keep their row/text and are flagged media_expired; the
+    MediaFile row (metadata) is kept but marked deleted so the file can
+    no longer be served.
+    """
     now = now or datetime.utcnow()
     cutoff = now - timedelta(hours=retention_hours)
     protected_media = _protected_sticker_media_ids()
 
+    # Media that is actually attached to a chat attachment message.
+    attached_media_ids = {
+        row[0]
+        for row in db.session.query(Message.media_id).filter(
+            Message.media_id.isnot(None),
+            Message.message_type.in_(CHAT_ATTACHMENT_TYPES),
+        ).all()
+    }
+
     freed_bytes = 0
     purged_media_count = 0
-    purged_messages_count = 0
 
-    # 1. Find expired messages (> 72 hours old)
-    expired_messages = Message.query.filter(Message.created_at <= cutoff).all()
-    expired_msg_ids = [m.id for m in expired_messages]
-    expired_msg_media_ids = {m.media_id for m in expired_messages if m.media_id}
-
-    if expired_msg_ids:
-        # Clear reactions and one-sided delete pointers referencing expired messages
-        MessageReaction.query.filter(
-            MessageReaction.message_id.in_(expired_msg_ids)
-        ).delete(synchronize_session=False)
-        DeletedMessage.query.filter(
-            DeletedMessage.message_id.in_(expired_msg_ids)
-        ).delete(synchronize_session=False)
-        # Clear reply_to_id references pointing to expired messages
-        Message.query.filter(
-            Message.reply_to_id.in_(expired_msg_ids)
-        ).update({'reply_to_id': None}, synchronize_session=False)
-
-        for msg in expired_messages:
-            db.session.delete(msg)
-            purged_messages_count += 1
-
-    # 2. Find expired media files (> 72 hours old or attached to expired messages)
-    expired_media_q = MediaFile.query.filter(
-        (MediaFile.created_at <= cutoff) | (MediaFile.id.in_(expired_msg_media_ids))
-        if expired_msg_media_ids
-        else (MediaFile.created_at <= cutoff)
+    expired_media = MediaFile.query.filter(
+        MediaFile.created_at.isnot(None),
+        MediaFile.created_at <= cutoff,
+        MediaFile.is_deleted.is_(False),
     ).all()
 
-    for media in expired_media_q:
-        if media.id in protected_media:
+    for media in expired_media:
+        if media.id in protected_media or media.id not in attached_media_ids:
             continue
         freed_bytes += _safe_unlink(media.file_path)
-        if not media.is_deleted:
-            media.is_deleted = True
-            media.deleted_at = now
-            purged_media_count += 1
-        # Unlink any remaining message references and delete the media record
+        media.is_deleted = True
+        media.deleted_at = now
+        purged_media_count += 1
+        # Keep the message (and its text/caption); only flag its media gone.
         Message.query.filter_by(media_id=media.id).update(
-            {
-                'media_id': None,
-                'media_expired': True,
-                'media_expired_at': now,
-            },
+            {'media_expired': True, 'media_expired_at': now},
             synchronize_session=False,
         )
-        db.session.delete(media)
 
     db.session.commit()
     _record_last_cleanup(now)
@@ -135,7 +128,8 @@ def run_retention_maintenance(now: datetime | None = None, retention_hours: int 
     return {
         'ok': True,
         'retention_hours': retention_hours,
-        'purged_messages': purged_messages_count,
+        'purged_messages': 0,  # retention NEVER deletes messages/chats
+        'purged_chats': 0,
         'purged_media_files': purged_media_count,
         'freed_bytes': freed_bytes,
         'cleaned_at': utc_iso(now),
@@ -143,9 +137,12 @@ def run_retention_maintenance(now: datetime | None = None, retention_hours: int 
 
 
 def clear_server_storage(mode: str = 'all') -> dict:
-    """Admin manual storage cleanup:
-    - mode='expired': purges data older than 72 hours.
-    - mode='all': purges all uploaded media files on disk and clears message/media storage.
+    """Admin manual storage cleanup (MEDIA ONLY, like the original).
+
+    - mode='expired': expire media blobs older than 72 hours.
+    - mode='all': delete all non-sticker uploaded media blobs now and flag
+      referencing messages media_expired.
+    Chats, messages, reactions and users are never touched by either mode.
     """
     now = datetime.utcnow()
     if mode == 'expired':
@@ -155,13 +152,18 @@ def clear_server_storage(mode: str = 'all') -> dict:
     freed_bytes = 0
     purged_media_count = 0
 
-    # Delete all non-sticker media files from database and disk
-    all_media = MediaFile.query.all()
+    all_media = MediaFile.query.filter(MediaFile.is_deleted.is_(False)).all()
     for media in all_media:
         if media.id in protected_media:
             continue
         freed_bytes += _safe_unlink(media.file_path)
+        media.is_deleted = True
+        media.deleted_at = now
         purged_media_count += 1
+        Message.query.filter_by(media_id=media.id).update(
+            {'media_expired': True, 'media_expired_at': now},
+            synchronize_session=False,
+        )
 
     # Also sweep any orphan files inside UPLOAD_FOLDER
     upload_folder = current_app.config.get('UPLOAD_FOLDER') if current_app else None
@@ -173,30 +175,14 @@ def clear_server_storage(mode: str = 'all') -> dict:
             if os.path.isfile(full_path):
                 freed_bytes += _safe_unlink(full_path)
 
-    # Purge reactions, deleted_messages, messages, and non-sticker media rows
-    MessageReaction.query.delete(synchronize_session=False)
-    DeletedMessage.query.delete(synchronize_session=False)
-    purged_messages_count = Message.query.delete(synchronize_session=False)
-    if protected_media:
-        MediaFile.query.filter(~MediaFile.id.in_(protected_media)).delete(synchronize_session=False)
-    else:
-        MediaFile.query.delete(synchronize_session=False)
-
     db.session.commit()
     _record_last_cleanup(now)
-
-    # Reclaim SQLite disk pages if using SQLite
-    try:
-        if db.engine.dialect.name == 'sqlite':
-            with db.engine.connect() as conn:
-                conn.execute(text('VACUUM'))
-    except Exception:
-        pass
 
     return {
         'ok': True,
         'mode': 'all',
-        'purged_messages': purged_messages_count,
+        'purged_messages': 0,  # storage cleanup NEVER deletes messages/chats
+        'purged_chats': 0,
         'purged_media_files': purged_media_count,
         'freed_bytes': freed_bytes,
         'cleaned_at': utc_iso(now),

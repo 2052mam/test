@@ -17,7 +17,7 @@ SSL: automatic with a domain (free Let's Encrypt). Renewals are automatic via ce
 6. Open your domain; admin at `/admin`.
 
 ## Everyday admin
-`/admin` → add/remove users (username only) and clear storage. The 72-hour purge also runs hourly by cron/systemd, so storage cannot silently fill up.
+`/admin` → add/remove users (username only) and clear storage. The 72-hour **media-only** purge also runs hourly by cron/systemd, so storage cannot silently fill up — it removes old photo/video/voice files only; chats and messages are never deleted.
 
 ## Troubleshooting
 - Video rejected: it must be **under 10 MB** — trim/compress on the phone first.

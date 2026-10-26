@@ -79,8 +79,8 @@ Click **Save** at the top when finished.
    (it can only add/remove users and free up storage — nothing else).
 
 > **First test:** create two accounts in two browser windows, search the other
-> person's `@username`, and send a message. Photos/videos are automatically
-> deleted after **72 hours**.
+> person's `@username`, and send a message. Photo/video/voice *files* are
+> automatically removed after **72 hours** — chats and messages always stay.
 
 ## Step 7 — Free HTTPS lock 🔒 (optional, 2 minutes)
 
@@ -103,7 +103,7 @@ national-only).
 
 ## Step 8 — Automatic cleanup every hour (2 minutes, clicking only)
 
-This deletes messages/photos older than 72 hours even while you sleep:
+This removes photo/video/voice *files* older than 72 hours even while you sleep (chats and messages are never deleted):
 
 1. cPanel → **Cron Jobs**.
 2. Under **Add New Cron Job**, choose **Once Per Hour** from the *Common Settings* dropdown.

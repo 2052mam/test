@@ -200,7 +200,7 @@ PANEL_HTML = """
     <!-- 3. Clear Server Storage Space -->
     <div class="card">
       <h2>Server Storage &amp; Automatic 72-Hour Cleanup</h2>
-      <p class="subtitle">All messages and media files are automatically purged every 72 hours. You can also free server disk space manually below.</p>
+      <p class="subtitle">Only uploaded media files (photos, videos, voice) are automatically removed every 72 hours — chats and messages are never deleted. You can also free server disk space manually below.</p>
       <div class="stats-row">
         <div class="stat-box">
           <div class="label">Media Upload Storage</div>
@@ -219,7 +219,7 @@ PANEL_HTML = """
         <form method="POST" action="{{ url_for('admin.clear_storage') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <input type="hidden" name="mode" value="expired">
-          <button type="submit" class="btn btn-primary">Purge Expired Data (&gt; 72h)</button>
+          <button type="submit" class="btn btn-primary">Purge Expired Media (&gt; 72h)</button>
         </form>
         <form method="POST" action="{{ url_for('admin.clear_storage') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -353,7 +353,7 @@ def clear_storage():
     result = clear_server_storage(mode=mode)
     freed_mb = round(result.get('freed_bytes', 0) / (1024 * 1024), 2)
     if mode == 'expired':
-        flash(f'Expired data (>72h) cleared ({freed_mb} MB freed).', 'success')
+        flash(f'Expired media (>72h) cleared ({freed_mb} MB freed).', 'success')
     else:
         flash(f'Server storage space cleared ({freed_mb} MB freed).', 'success')
     return redirect(url_for('admin.index'))

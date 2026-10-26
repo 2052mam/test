@@ -13,7 +13,7 @@ from app.models.user import User, BlockedUser
 from app.services.app_settings import VIDEO_MAX_BYTES
 from app.services.chat_permissions import ensure_can_send
 from app.services.message_payloads import serialize_messages, user_in_chat
-from app.services.retention_maintenance import RETENTION_HOURS, maybe_run_auto_retention
+from app.services.retention_maintenance import maybe_run_auto_retention
 
 messages_bp = Blueprint('messages', __name__)
 
@@ -34,7 +34,7 @@ def get_messages(chat_id):
 
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 50, type=int), 100)
-    cutoff = datetime.utcnow() - timedelta(hours=RETENTION_HOURS)
+    # No age cutoff: messages/chats are never expired — only media blobs are.
 
     deleted_subq = db.session.query(DeletedMessage.message_id).filter_by(user_id=user_id)
 
@@ -47,7 +47,6 @@ def get_messages(chat_id):
             Message.chat_id == chat_id,
             Message.is_deleted.is_(False),
             Message.is_deleted_for_all.is_(False),
-            Message.created_at > cutoff,
             ~Message.id.in_(deleted_subq),
         )
         .order_by(Message.created_at.desc(), Message.id.desc())

@@ -26,7 +26,7 @@ Reyno Messenger Lite is a chat website (like a small, private WhatsApp/Telegram)
 that runs on **your own** server or hosting. You own it, you control it, and:
 
 - 👤 People sign up with only a **username + password** — no phone number, no email
-- 🕐 **Everything deletes itself after 72 hours** — messages, photos, videos, voice notes
+- 🕐 **Photos, videos & voice files delete themselves after 72 hours** — your chats and messages always stay
 - 🆓 Everything is **completely free**: the software, the SSL lock, the hosting guides
 - 🇮🇷 It works **with or without HTTPS**, and even on a **national-only network**,
   because it never needs to contact any outside service
@@ -51,7 +51,7 @@ that runs on **your own** server or hosting. You own it, you control it, and:
 | 🚫 Block annoying users | 🎨 Light & dark themes |
 
 > ⚠️ **By design, Lite can NOT delete a message for everyone.**
-> Once you send it, the other side keeps their copy until the 72 hours are up —
+> Once you send it, the other side keeps their copy —
 > you can only remove it from your own screen (and you can always **edit** it).
 > “Delete for everyone” is a Full-version feature.
 
@@ -142,7 +142,7 @@ access stored data. For most communities this is fine — please don't oversell 
 3. Tap their name → write a message → send. 📷 button sends a photo/video, 🎤 sends a voice message, 📍 sends your location pin.
 4. Made a typo? **Edit** fixes it for both sides. Want it gone from *your* screen? **Delete for me**. (It stays on the other side — see the note above.)
 5. The **ℹ️ button** opens group settings: add members, make someone an admin, archive the chat, or block a person.
-6. Remember: **everything disappears by itself after 72 hours.** Save anything important elsewhere!
+6. Remember: **photos, videos and voice files disappear by themselves after 72 hours** (the message stays, marked “media expired”). Save any important *files* elsewhere — your text chats never vanish!
 
 **Admin page:** open `YOUR-SITE/admin` and log in with the admin name/password
 from installation. It can only do three things — **add a user, remove a user,
@@ -162,6 +162,7 @@ free up storage**. It cannot read anyone's messages.
 | Archive chats | ✅ | ✅ |
 | Search `@ID` / groups / channels, online status, block users | ✅ | ✅ |
 | Works on plain HTTP (national network ready) | ✅ | ✅ |
+| Old photos/videos/voice files auto-removed after 72h (messages stay) | ✅ | ✅ |
 | Phone-number sign-up, profiles/avatars/bio | ❌ | ✅ |
 | Notifications, GIFs, documents, polls, secret chats | ❌ | ✅ |
 | Ghost mode, 2FA, folders, scheduled/view-once messages | ❌ | ✅ |
@@ -176,7 +177,7 @@ free up storage**. It cannot read anyone's messages.
 | Site won't open | Is the address exactly right — `http://` vs `https://`? Try the other one. |
 | “Video too large” | Videos must be **under 10 MB** — trim it or lower the quality. |
 | I deleted a message but my friend still sees it | That's Lite by design — deletion is only for your own screen. Use **Edit** if you need to change what they see. |
-| Everything older than 3 days vanished | That's the 72-hour auto-delete working as promised. 🕐 |
+| A photo/video older than 3 days won't open | That's the 72-hour media cleanup working as promised 🕐 — the message itself stays; only the file is removed. Chats and texts are never auto-deleted. |
 | Forgot the admin password (VPS) | Edit `backend/.env`, change `ADMIN_PASSWORD`, restart: `sudo systemctl restart reyno` |
 | Still stuck? | 📖 [docs/DEPLOY.md](docs/DEPLOY.md) · 🖱️ [docs/CPANEL_MANUAL.md](docs/CPANEL_MANUAL.md) · open a GitHub issue (never share your passwords!) |
 
@@ -199,7 +200,7 @@ belong to the Reyno project.
 «رینو مسنجر لایت» یه پیام‌رسان کوچیک و خصوصیه (مثل واتس‌اپ یا تلگرام کوچولو) که روی سرور یا هاستِ **خودت** نصب می‌شه. یعنی صاحبش خودتی و:
 
 - 👤 ثبت‌نام فقط با **نام کاربری و رمز عبور**ه — نه شماره موبایل می‌خواد، نه ایمیل
-- 🕐 **همه‌چیز بعد از ۷۲ ساعت خودبه‌خود پاک می‌شه** — پیام‌ها، عکس‌ها، فیلم‌ها و ویس‌ها
+- 🕐 **عکس‌ها، فیلم‌ها و ویس‌ها بعد از ۷۲ ساعت خودبه‌خود پاک می‌شن** — ولی چت‌ها و پیام‌هات همیشه می‌مونن
 - 🆓 **کاملاً رایگانه** — خود برنامه، قفل امنیتی (SSL) و همه آموزش‌ها
 - 🇮🇷 **بدون HTTPS هم کار می‌کنه**؛ حتی اگه اینترنت «ملی» بشه، چون به هیچ سایت خارجی‌ای نیاز نداره
 - 🚫 بدون تبلیغ، بدون ردیابی، بدون اینکه شرکتی چت‌هاتو بخونه
@@ -219,7 +220,7 @@ belong to the Reyno project.
 | 🚫 بلاک‌کردن مزاحما | 🎨 تم روشن و تاریک |
 
 > ⚠️ **توجه، این یه تصمیم عمدیه:** نسخه لایت **«حذف برای همه» نداره**.
-> وقتی پیامی رو فرستادی، طرف مقابل نسخش رو داره تا وقتی ۷۲ ساعتش تموم بشه؛
+> وقتی پیامی رو فرستادی، طرف مقابل نسخش رو داره؛
 > تو فقط می‌تونی از صفحه **خودت** پاکش کنی (و همیشه می‌تونی **ویرایشش** کنی).
 > «حذف برای طرف مقابل» مال نسخه کامل (Full) هست.
 
@@ -297,7 +298,7 @@ http://آی‌پی-سرور-تو/
 
 ۵. دکمه **ℹ️** تنظیمات گروه رو باز می‌کنه: اضافه‌کردن عضو، ادمین‌کردن، آرشیو کردن چت یا بلاک‌کردن یه نفر.
 
-۶. یادت نره: **همه‌چیز بعد از ۷۲ ساعت خودش پاک می‌شه.** چیزای مهم رو یه جای دیگه نگه دار!
+۶. یادت نره: **عکس‌ها، فیلم‌ها و ویس‌ها بعد از ۷۲ ساعت خودشون پاک می‌شن** (خود پیام می‌مونه و روش می‌نویسه «رسانه منقضی شده»). پس **فایل‌های** مهم رو یه جای دیگه نگه دار — چت‌ها و متن‌هات هیچ‌وقت خودبه‌خود پاک نمی‌شن!
 
 **صفحه مدیر:** آدرس `آدرس-سایتت/admin` رو باز کن و با نام کاربری و رمز مدیری که موقع نصب انتخاب کردی وارد شو. این صفحه فقط سه تا کار می‌تونه بکنه: **اضافه‌کردن کاربر، حذف کاربر و خالی‌کردن فضای سرور**. به هیچ وجه نمی‌تونه پیام‌های کسی رو بخونه.
 
@@ -325,7 +326,7 @@ http://آی‌پی-سرور-تو/
 | سایت باز نمی‌شه | آدرس رو دقیق چک کن — اولش `http://` هست یا `https://`؟ اون یکی رو هم امتحان کن. |
 | می‌گه «فیلم خیلی بزرگه» | فیلم باید **زیر ۱۰ مگابایت** باشه — کوتاهش کن یا کیفیتش رو بیار پایین. |
 | پیام رو پاک کردم ولی دوستم هنوز می‌بینتش | طبیعیه! توی نسخه لایت حذف فقط برای صفحه خودته. اگه می‌خوای اون چیزی که می‌بینه عوض بشه، از **ویرایش** استفاده کن. |
-| چیزای قدیمی‌تر از ۳ روز غیب شدن | این همون پاک‌شدن خودکار ۷۲ ساعته‌ست و داره درست کارش رو می‌کنه 🕐 |
+| عکس یا فیلم قدیمی‌تر از ۳ روز باز نمی‌شه | این همون پاک‌سازی خودکار ۷۲ ساعته‌ست 🕐 — فقط فایل پاک شده، خود پیام سر جاشه. چت و متن هیچ‌وقت خودکار پاک نمی‌شن. |
 | رمز مدیر رو یادم رفته (سرور) | فایل `backend/.env` رو باز کن، `ADMIN_PASSWORD` رو عوض کن و این دستور رو بزن: `sudo systemctl restart reyno` |
 | باز هم نشد؟ | 📖 [docs/DEPLOY.md](docs/DEPLOY.md) · 🖱️ [docs/CPANEL_MANUAL.md](docs/CPANEL_MANUAL.md) · یا توی گیت‌هاب Issue باز کن (هیچ‌وقت رمزت رو برای کسی نفرست!) |
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI script to run 72-hour automatic data retention cleanup (for cron or systemd timers)."""
+"""CLI script to run the 72-hour MEDIA retention cleanup (cron/systemd). Media only: chats/messages are kept."""
 import os
 import sys
 
@@ -14,8 +14,8 @@ def main():
     with app.app_context():
         result = run_retention_maintenance()
         print(
-            f"[Reyno Lite Retention] Purged {result['purged_messages']} messages and "
-            f"{result['purged_media_files']} media files ({result['freed_bytes']} bytes freed)."
+            f"[Reyno Lite Retention] Expired {result['purged_media_files']} media files "
+            f"({result['freed_bytes']} bytes freed). Chats and messages are never deleted."
         )
 
 

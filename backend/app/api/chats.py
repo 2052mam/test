@@ -16,7 +16,7 @@ from app.services.chat_permissions import (
     can_pin_in_chat,
 )
 from app.services.message_payloads import serialize_messages
-from app.services.retention_maintenance import RETENTION_HOURS, maybe_run_auto_retention
+from app.services.retention_maintenance import maybe_run_auto_retention
 from app.services.timestamps import utc_iso
 
 chats_bp = Blueprint('chats', __name__)
@@ -29,7 +29,6 @@ def _escape_like(val: str) -> str:
 
 
 def _last_visible_message(chat_id: str, user_id: str):
-    cutoff = datetime.utcnow() - timedelta(hours=RETENTION_HOURS)
     deleted_subq = db.session.query(DeletedMessage.message_id).filter_by(user_id=user_id)
     msg = (
         Message.query.options(
@@ -40,7 +39,6 @@ def _last_visible_message(chat_id: str, user_id: str):
             Message.chat_id == chat_id,
             Message.is_deleted.is_(False),
             Message.is_deleted_for_all.is_(False),
-            Message.created_at > cutoff,
             ~Message.id.in_(deleted_subq),
         )
         .order_by(Message.created_at.desc(), Message.id.desc())
@@ -600,7 +598,6 @@ def list_pinned_messages(chat_id):
     if not member:
         return jsonify({'error': 'Access denied.'}), 403
 
-    cutoff = datetime.utcnow() - timedelta(hours=RETENTION_HOURS)
     deleted_subq = db.session.query(DeletedMessage.message_id).filter_by(user_id=user_id)
     pinned = (
         Message.query.options(
@@ -612,7 +609,6 @@ def list_pinned_messages(chat_id):
             Message.is_pinned.is_(True),
             Message.is_deleted.is_(False),
             Message.is_deleted_for_all.is_(False),
-            Message.created_at > cutoff,
             ~Message.id.in_(deleted_subq),
         )
         .order_by(Message.pinned_at.desc(), Message.created_at.desc())
@@ -714,7 +710,6 @@ def poll_updates():
 
     since_str = request.args.get('since')
     now = datetime.utcnow()
-    cutoff = now - timedelta(hours=RETENTION_HOURS)
 
     since_dt = None
     if since_str:
@@ -729,7 +724,7 @@ def poll_updates():
         except ValueError:
             since_dt = None
 
-    if not since_dt or since_dt < cutoff:
+    if not since_dt:
         since_dt = now - timedelta(seconds=30)
 
     memberships = ChatMember.query.filter_by(user_id=user_id, is_deleted=False).all()
@@ -752,7 +747,6 @@ def poll_updates():
             Message.chat_id.in_(chat_ids),
             Message.is_deleted.is_(False),
             Message.is_deleted_for_all.is_(False),
-            Message.created_at > cutoff,
             ~Message.id.in_(deleted_subq),
             or_(Message.created_at >= since_dt, Message.updated_at >= since_dt),
         )

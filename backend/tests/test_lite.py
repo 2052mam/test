@@ -56,3 +56,36 @@ def test_static_location_and_block(client, users):
     assert r.status_code==201 and r.json['message']['is_live_location'] is False
     assert client.post(f"/api/v1/messages/chat/{c['id']}", headers=a, json={'message_type':'location','latitude':35,'longitude':51,'is_live':True}).status_code==400
     assert client.post(f'/api/v1/users/block/{bid}', headers=a, json={}).status_code==200
+def test_retention_expires_media_only_never_messages_or_chats(client, users, png, app):
+    from datetime import datetime, timedelta
+    from app import db
+    from app.models.message import Message
+    from app.models.media import MediaFile
+    from app.services.retention_maintenance import run_retention_maintenance
+    (a,aid),(b,bid)=users
+    c=client.post('/api/v1/chats', headers=a, json={'chat_type':'private','target_user_id':bid}).json['chat']
+    t=client.post(f"/api/v1/messages/chat/{c['id']}", headers=a, json={'message_type':'text','content':'old text stays'}).json['message']
+    up=client.post('/api/v1/media/upload', headers=a, data={'file':(io.BytesIO(png),'x.png'),'type':'image'})
+    mid=up.json['media']['id']
+    im=client.post(f"/api/v1/messages/chat/{c['id']}", headers=a, json={'message_type':'image','media_id':mid,'content':'caption stays'}).json['message']
+    with app.app_context():
+        old=datetime.utcnow()-timedelta(hours=100)
+        Message.query.filter(Message.id.in_([t['id'],im['id']])).update({'created_at':old}, synchronize_session=False)
+        MediaFile.query.filter_by(id=mid).update({'created_at':old}, synchronize_session=False)
+        db.session.commit()
+        r=run_retention_maintenance()
+        assert r['purged_messages']==0 and r['purged_chats']==0 and r['purged_media_files']==1
+    msgs=client.get(f"/api/v1/messages/chat/{c['id']}", headers=b).json['messages']
+    assert [m['content'] for m in msgs]==['old text stays','caption stays']  # nothing deleted
+    img=[m for m in msgs if m['id']==im['id']][0]
+    assert img['media_expired'] is True and img['media_url'] is None
+    assert client.get(f"/api/v1/media/{mid}", headers=b).status_code in (404,410)
+    # chat itself still exists in the list with its last message
+    chats=client.get('/api/v1/chats', headers=b).json
+    lst=chats.get('chats', chats) if isinstance(chats, dict) else chats
+    assert any(x['id']==c['id'] for x in lst)
+    # admin clear-storage is also media-only
+    tok=client.post('/api/v1/admin/login', json={'username':'admin','password':'adminpass123'}).json['access_token']
+    h={'Authorization':f'Bearer {tok}'}
+    assert client.post('/api/v1/admin/storage/clear', headers=h, json={'mode':'all'}).status_code==200
+    assert len(client.get(f"/api/v1/messages/chat/{c['id']}", headers=b).json['messages'])==2
