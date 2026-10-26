@@ -11,10 +11,7 @@ from app.models.media import MediaFile
 from app.models.message import Message, DeletedMessage, ALLOWED_MESSAGE_TYPES
 from app.models.user import User, BlockedUser
 from app.services.app_settings import VIDEO_MAX_BYTES
-from app.services.chat_permissions import (
-    ensure_can_send,
-    can_delete_message_for_all,
-)
+from app.services.chat_permissions import ensure_can_send
 from app.services.message_payloads import serialize_messages, user_in_chat
 from app.services.retention_maintenance import RETENTION_HOURS, maybe_run_auto_retention
 
@@ -277,54 +274,29 @@ def delete_message(message_id):
         return jsonify({'error': 'Access denied.'}), 403
 
     data = request.get_json(silent=True) or {}
-    query_for_all = request.args.get('for_all')
-    if 'delete_for_all' in data:
-        delete_for_all = bool(data['delete_for_all'])
-    elif 'for_all' in data:
-        delete_for_all = bool(data['for_all'])
-    elif query_for_all is not None:
-        delete_for_all = query_for_all.lower() in ('true', '1', 'yes')
-    else:
-        delete_for_all = False
+    # POINT 1: Reyno Lite only supports one-sided deletion ("Delete for me").
+    # Deleting for everyone is a Full-version feature and is rejected here,
+    # even for the sender or group/channel admins. Editing, however, stays
+    # two-sided: an edited message shows as edited for everyone.
+    wants_for_all = bool(
+        data.get('delete_for_all') or data.get('for_all')
+        or (request.args.get('for_all') or '').lower() in ('true', '1', 'yes')
+    )
+    if wants_for_all:
+        return jsonify({
+            'error': 'Deleting for everyone is not available in Reyno Messenger Lite. You can only delete a message for yourself.',
+            'code': 'delete_for_everyone_unavailable',
+        }), 403
 
-    now = datetime.utcnow()
-
-    if delete_for_all:
-        if not can_delete_message_for_all(chat, member, msg, user_id):
-            return jsonify({'error': 'You do not have permission to delete this message for everyone.'}), 403
-
-        # Permanently unlink and delete any attached media file from disk
-        if msg.media_id:
-            media = MediaFile.query.get(msg.media_id)
-            if media:
-                try:
-                    if media.file_path and os.path.isfile(media.file_path):
-                        os.remove(media.file_path)
-                except OSError:
-                    pass
-                media.is_deleted = True
-                media.deleted_at = now
-                media.deleted_by = user_id
-
-        msg.content = None
-        msg.location_title = None
-        msg.is_deleted = True
-        msg.deleted_at = now
-        msg.deleted_by = user_id
-        msg.is_deleted_for_all = True
-        msg.deleted_for_all_at = now
-        msg.is_pinned = False
-        msg.updated_at = now
-    else:
-        existing = DeletedMessage.query.filter_by(message_id=message_id, user_id=user_id).first()
-        if not existing:
-            db.session.add(DeletedMessage(message_id=message_id, user_id=user_id))
+    existing = DeletedMessage.query.filter_by(message_id=message_id, user_id=user_id).first()
+    if not existing:
+        db.session.add(DeletedMessage(message_id=message_id, user_id=user_id))
 
     db.session.commit()
     return jsonify({
         'message': 'Message deleted.',
         'message_id': message_id,
-        'delete_for_all': delete_for_all,
+        'delete_for_all': False,
     }), 200
 
 

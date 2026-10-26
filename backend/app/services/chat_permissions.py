@@ -33,13 +33,12 @@ def can_promote_admins(chat, member) -> bool:
 
 
 def can_delete_message_for_all(chat, member, message, user_id: str) -> bool:
-    if not member or member.is_deleted:
-        return False
-    if message.sender_id == user_id:
-        return True
-    if chat.chat_type == 'private':
-        return True
-    return is_admin_or_owner(member)
+    """Disabled in Lite: deletion is one-sided only ("delete for me").
+
+    Kept as a function so old callers fail closed (always False) instead of
+    accidentally re-enabling two-way deletion.
+    """
+    return False
 
 
 def can_pin_in_chat(chat, member) -> bool:

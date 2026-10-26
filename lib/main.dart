@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/theme/app_theme.dart';
 
 /// Reyno Messenger Lite (Flutter Web) — same API & look as the served web app:
 /// Sapphire #2481CC, Midnight Slate dark theme, Telegram-like chat UI.
@@ -35,9 +36,10 @@ class _S extends State<ReynoLite> {
   @override Widget build(BuildContext c) => MaterialApp(
       title: 'Reyno Messenger Lite', debugShowCheckedModeBanner: false,
       themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFF2481CC)),
-      darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark,
-          colorSchemeSeed: const Color(0xFF2481CC), scaffoldBackgroundColor: const Color(0xFF0E1621)),
+      // Pixel-identical to the original Reyno app: the original AppTheme
+      // (lib/core/theme/app_theme.dart, copied verbatim) is used as-is.
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       home: LoginPage(onTheme: () => setState(() => dark = !dark)));
 }
 

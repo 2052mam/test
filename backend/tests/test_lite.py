@@ -7,15 +7,23 @@ def test_register_login_username_only(client, users):
     # no phone/email/profile fields exposed
     me=client.get('/api/v1/users/me', headers=a).json['user']
     assert 'mobile' not in str(me).lower() and 'email' not in me and 'bio' not in me and 'avatar' not in me
-def test_chat_text_edit_delete_everyone(client, users):
+def test_chat_text_edit_two_sided_but_delete_self_only(client, users):
     (a,aid),(b,bid)=users
     c=client.post('/api/v1/chats', headers=a, json={'chat_type':'private','target_user_id':bid}).json['chat']
     m=client.post(f"/api/v1/messages/chat/{c['id']}", headers=a, json={'message_type':'text','content':'hello'}).json['message']
     assert client.get(f"/api/v1/messages/chat/{c['id']}", headers=b).json['messages'][0]['content']=='hello'
     e=client.put(f"/api/v1/messages/{m['id']}", headers=a, json={'content':'edited'})
     assert e.json['message']['is_edited'] is True
-    assert client.delete(f"/api/v1/messages/{m['id']}", headers=a, json={'for_all':True}).status_code==200
-    assert client.get(f"/api/v1/messages/chat/{c['id']}", headers=b).json['messages']==[]
+    # Editing IS two-sided: the other user sees the edited text
+    assert client.get(f"/api/v1/messages/chat/{c['id']}", headers=b).json['messages'][0]['content']=='edited'
+    # Delete-for-everyone is NOT in Lite (sender or not) -> 403
+    assert client.delete(f"/api/v1/messages/{m['id']}", headers=a, json={'for_all':True}).status_code==403
+    assert client.delete(f"/api/v1/messages/{m['id']}", headers=a, json={'delete_for_all':True}).status_code==403
+    assert client.delete(f"/api/v1/messages/{m['id']}?for_all=true", headers=a).status_code==403
+    # Delete-for-me works, and only hides it for the deleter
+    assert client.delete(f"/api/v1/messages/{m['id']}", headers=a, json={}).status_code==200
+    assert client.get(f"/api/v1/messages/chat/{c['id']}", headers=a).json['messages']==[]
+    assert client.get(f"/api/v1/messages/chat/{c['id']}", headers=b).json['messages'][0]['content']=='edited'
 def test_rejected_features(client, users):
     (a,aid),(b,bid)=users
     c=client.post('/api/v1/chats', headers=a, json={'chat_type':'private','target_user_id':bid}).json['chat']

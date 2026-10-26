@@ -56,6 +56,18 @@ def create_app():
         except Exception:
             app.logger.exception('Schema init failed')
 
+    # Point 6: HTTP is a fully supported mode (e.g. Iran "national network",
+    # LAN, or IP-only hosting). HTTPS is recommended but NEVER forced unless
+    # the operator explicitly sets FORCE_HTTPS=true. HSTS is only sent on
+    # HTTPS responses (below), so plain-HTTP clients are never locked out.
+    force_https = os.getenv('FORCE_HTTPS', 'false').lower() == 'true'
+
+    @app.before_request
+    def _maybe_force_https():
+        if force_https and not request.is_secure and request.path != '/health':
+            return jsonify({'error': 'HTTPS required on this server.'}), 426
+        return None
+
     @app.after_request
     def _headers(resp):
         resp.headers['X-Content-Type-Options'] = 'nosniff'

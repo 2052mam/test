@@ -1,111 +1,336 @@
 <div align="center">
-<img src="assets/icons/reyno_logo_dark.png" width="420" alt="Reyno Messenger Lite">
 
-# Reyno Messenger Lite
+<img src="assets/icons/reyno_logo.png" alt="Reyno Messenger Lite" width="420">
 
-**Your own private messenger — on your own server, in your browser, in minutes.**
+# 💬 Reyno Messenger Lite
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
-[![Flask](https://img.shields.io/badge/Backend-Flask-black)](https://flask.palletsprojects.com)
-[![Retention](https://img.shields.io/badge/Data%20retention-72%20hours-red)](#-privacy--safety-design)
-[![Videos](https://img.shields.io/badge/Video-limit%20%3C%2010%20MB-green)](#)
-[![License](https://img.shields.io/badge/Use-Free-brightgreen)](#)
+### A free, private, lightweight messenger you host yourself — even without a domain
 
-No phone number. No email. No app install. Just a **username + password**, a link, and any browser — phone, tablet, or computer.
-Built for places where privacy matters most: messages are **encrypted on the server disk**, media **auto-deletes after 72 hours**, and the admin **cannot read anyone's chats**.
+[![License](https://img.shields.io/badge/license-free%20to%20use-brightgreen)](#-license)
+[![Python](https://img.shields.io/badge/backend-Flask%20%2B%20SQLite-blue)](backend/)
+[![Deploy](https://img.shields.io/badge/deploy-VPS%20%7C%20cPanel-success)](#-install--choose-your-easy-way)
+[![SSL](https://img.shields.io/badge/SSL-free%20(domain%2C%20IP%20or%20none)-orange)](#-ssl--three-free-choices)
+[![Retention](https://img.shields.io/badge/auto--delete-every%2072h-red)](#-privacy-by-design)
 
-[Quick start (VPS)](#-quick-start--ubuntu-vps-one-command) · [cPanel hosting](#-quick-start--cpanel-shared-hosting) · [User guide (non-technical)](#-user-guide-for-everyone) · [Feature comparison](#-lite-vs-full-version)
+**English** · [🇮🇷 فارسی — پایین همین صفحه](#-نسخه-فارسی)
+
+[🚀 Install](#-install--choose-your-easy-way) · [📱 How to use](#-how-to-use-plain-language) · [🆚 Lite vs Full](#-lite-vs-full) · [❓ Help](#-troubleshooting-for-humans)
+
 </div>
 
 ---
 
-## ✨ What you get
+## 🌟 What is this, in plain words?
 
-- 💬 Private, group & channel chats — create, add members, assign admins (simple roles only)
-- 📝 Text, 📷 photos, 🎬 videos (**under 10 MB**), 🎙 voice messages, 😀 stickers, 📍 **static** location
-- ✏️ Edit messages, ❤️ reactions, ↩️ replies, 📌 pinning, ➡️ forwarding
-- 🗑 Delete **for me** or **for everyone** (two-way), 🗂 archive chats, 🔕 mute, 📌 pin chats
-- 🔍 Search people by **@ID**, plus public groups & channels
-- 🟢 Online status, 🎨 light/dark themes
-- 🔐 **Admin panel so limited it can't spy:** only *add user*, *remove user*, *clear server storage*
+Reyno Messenger Lite is a chat website (like a small, private WhatsApp/Telegram)
+that runs on **your own** server or hosting. You own it, you control it, and:
 
-## 🚫 What Lite deliberately does NOT have
+- 👤 People sign up with only a **username + password** — no phone number, no email
+- 🕐 **Everything deletes itself after 72 hours** — messages, photos, videos, voice notes
+- 🆓 Everything is **completely free**: the software, the SSL lock, the hosting guides
+- 🇮🇷 It works **with or without HTTPS**, and even on a **national-only network**,
+  because it never needs to contact any outside service
+- 🚫 No ads, no tracking, no company reading your chats
 
-No profiles/avatars/bio · no phone or email sign-up · no 2FA · no notifications/background push · no Persian UI (English only) · no Ghost Mode · no multi-account · no documents/files · no GIFs · no polls/quizzes · no secret chats · no live location · no video notes · no spoiler/view-once/scheduled/password messages · no folders · no forwarding controls · no chat backgrounds/disappearing timers · no device/session manager · no granular permissions.
+> **Who is it for?** Families, friends, small teams and communities in Iran and
+> anywhere else who want a simple private messenger without giving their phone
+> number to anyone.
 
-## 📊 Lite vs Full version
+---
 
-| Feature | Full (private) | Lite (this repo) |
+## ✨ What it can do
+
+| | |
+|---|---|
+| 💬 Text chats (one-to-one) | 👥 Groups & 📢 channels (create, add members, make admins) |
+| 📷 Photos | 🎬 Videos **under 10 MB** |
+| 🎤 Voice messages | 😀 Stickers & reactions ❤️ |
+| 📍 Static location (a pin on a map) | ✏️ **Edit messages** — the edit shows for both sides |
+| 🗑️ Delete a message **for yourself** | 🗂️ Archive chats, 📌 pin, 🔕 mute |
+| 🔍 Search people by `@username`, groups & channels | 🟢 See who is online |
+| 🚫 Block annoying users | 🎨 Light & dark themes |
+
+> ⚠️ **By design, Lite can NOT delete a message for everyone.**
+> Once you send it, the other side keeps their copy until the 72 hours are up —
+> you can only remove it from your own screen (and you can always **edit** it).
+> “Delete for everyone” is a Full-version feature.
+
+---
+
+## 🚀 Install — choose your easy way
+
+> 🧭 **You do NOT need to be a programmer.** Pick the row that describes you and
+> follow it step by step. Every way below is free.
+
+| You have… | Follow this | Time | Terminal needed? |
+|---|---|---|---|
+| A Linux VPS (Ubuntu) + a domain | [Way A](#way-a--vps-with-a-domain) | ~5 min | One copy-paste |
+| A Linux VPS, **no domain** (just an IP like `185.2.3.4`) | [Way B](#way-b--vps-with-only-an-ip-address-no-domain) | ~5 min | One copy-paste |
+| A Linux VPS, want it **as simple as possible** (plain HTTP) | [Way C](#way-c--vps-plain-http-no-ssl-at-all) | ~5 min | One copy-paste |
+| cPanel shared hosting, you **like** the terminal | [`cpanel-setup.sh`](cpanel-setup.sh) | ~5 min | Yes |
+| cPanel shared hosting, you **hate** terminals 🖱️ | [📖 Manual cPanel guide (click-only)](docs/CPANEL_MANUAL.md) | ~15 min | **Never** |
+
+### Way A — VPS with a domain
+
+1. Point your domain's **A record** to your server's IP (your domain provider shows you how; it is one small form).
+2. Connect to your server and paste this one line:
+
+```bash
+git clone YOUR-REPO-URL reyno-lite && cd reyno-lite && bash install.sh
+```
+
+3. Choose **1**, type your domain, pick an admin username/password — the script does everything else, including the **free SSL lock** 🔒.
+
+### Way B — VPS with only an IP address (no domain)
+
+Just like panels such as **3x-ui**: you don't need to buy a domain at all.
+
+```bash
+git clone YOUR-REPO-URL reyno-lite && cd reyno-lite && bash install.sh
+```
+
+Choose **2**. The installer automatically gets a **free SSL certificate for your
+IP address** ([`scripts/ip-ssl.sh`](scripts/ip-ssl.sh): a trusted Let's Encrypt
+IP certificate that renews itself; if that is unavailable it creates a free
+self-signed one — your site still opens at `https://YOUR-IP`, visitors may tap
+“Advanced → Continue” once). Then just open:
+
+```
+https://YOUR-SERVER-IP/
+```
+
+### Way C — VPS, plain HTTP, no SSL at all
+
+```bash
+git clone YOUR-REPO-URL reyno-lite && cd reyno-lite && bash install.sh
+```
+
+Choose **3**. Done. Open `http://YOUR-SERVER-IP/`.
+
+This mode exists on purpose: **if the internet ever becomes national-only**,
+certificate websites abroad may be unreachable — your messenger keeps working
+because it needs nothing from outside. (On your own private network the risk of
+plain HTTP is small; on the open internet, Way A or B is safer.)
+
+### 🖱️ cPanel without any terminal
+
+Follow the friendly click-by-click guide: **[docs/CPANEL_MANUAL.md](docs/CPANEL_MANUAL.md)**
+— upload a ZIP, press a few buttons, done. Full deployment details, SSL and
+troubleshooting also live in **[docs/DEPLOY.md](docs/DEPLOY.md)**.
+
+---
+
+## 🔒 SSL — three free choices
+
+| Choice | Address people open | Cost | Good to know |
+|---|---|---|---|
+| Domain + Let's Encrypt | `https://chat.example.com` | Free | Most trusted; renews itself |
+| **IP certificate** (like 3x-ui) | `https://185.2.3.4` | Free | No domain needed; short-lived cert renews itself automatically |
+| No SSL (HTTP) | `http://185.2.3.4` | Free | Works on national-only/LAN networks; chats are not encrypted on the wire |
+
+**Honest note:** Reyno Lite encrypts stored messages on the server disk and
+strips GPS/photo metadata, but it is **not** end-to-end encrypted like Signal.
+HTTPS protects chats while they travel; the server owner could, in theory,
+access stored data. For most communities this is fine — please don't oversell it.
+
+---
+
+## 📱 How to use (plain language)
+
+1. Open your site and tap **Create account**. Pick a username (like `sara_2026`) and a password. That's it — no phone, no email, no profile photo.
+2. To find a friend, type their `@username` in the search box at the top.
+3. Tap their name → write a message → send. 📷 button sends a photo/video, 🎤 sends a voice message, 📍 sends your location pin.
+4. Made a typo? **Edit** fixes it for both sides. Want it gone from *your* screen? **Delete for me**. (It stays on the other side — see the note above.)
+5. The **ℹ️ button** opens group settings: add members, make someone an admin, archive the chat, or block a person.
+6. Remember: **everything disappears by itself after 72 hours.** Save anything important elsewhere!
+
+**Admin page:** open `YOUR-SITE/admin` and log in with the admin name/password
+from installation. It can only do three things — **add a user, remove a user,
+free up storage**. It cannot read anyone's messages.
+
+---
+
+## 🆚 Lite vs Full
+
+| Feature | Lite (this, free) | Full Reyno |
 |---|:---:|:---:|
-| Text / photo / voice / stickers | ✅ | ✅ |
-| Video | ✅ | ✅ (<10 MB) |
-| Two-way delete + edit | ✅ | ✅ |
-| Groups/channels, admins, members | ✅ | ✅ (simple) |
-| Search @ID/groups/channels, block, archive, themes, online | ✅ | ✅ |
-| Static location | ✅ | ✅ |
-| 72-hour auto-clear | ✅ | ✅ |
-| Profiles, bio, avatar | ✅ | ❌ |
-| Phone sign-up / recovery | ✅ | ❌ |
-| 2FA, multi-account, devices | ✅ | ❌ |
-| Documents, GIFs, polls, secret chat | ✅ | ❌ |
-| Live location, video notes, spoiler, scheduled, password msgs | ✅ | ❌ |
-| Notifications / Firebase / background | ✅ | ❌ |
-| Persian language | ✅ | ❌ |
-| Folders, forwarding controls, granular permissions | ✅ | ❌ |
-| God-mode admin panel | ✅ | ❌ (add/remove users + clear storage only) |
+| Text, photo, video (<10 MB), voice, stickers | ✅ | ✅ |
+| Groups & channels, admins | ✅ | ✅ |
+| Edit messages (visible to both sides) | ✅ | ✅ |
+| **Delete for yourself** | ✅ | ✅ |
+| **Delete for everyone** | ❌ | ✅ |
+| Archive chats | ✅ | ✅ |
+| Search `@ID` / groups / channels, online status, block users | ✅ | ✅ |
+| Works on plain HTTP (national network ready) | ✅ | ✅ |
+| Phone-number sign-up, profiles/avatars/bio | ❌ | ✅ |
+| Notifications, GIFs, documents, polls, secret chats | ❌ | ✅ |
+| Ghost mode, 2FA, folders, scheduled/view-once messages | ❌ | ✅ |
+| Price | **Free** | — |
 
-## 🚀 Quick start — Ubuntu VPS (one command)
+---
 
-You need: a cheap Ubuntu VPS (the kind sold for VPN/proxy use is fine), optionally a domain pointed at it.
+## 🛟 Troubleshooting for humans
+
+| Problem | Try this first |
+|---|---|
+| Site won't open | Is the address exactly right — `http://` vs `https://`? Try the other one. |
+| “Video too large” | Videos must be **under 10 MB** — trim it or lower the quality. |
+| I deleted a message but my friend still sees it | That's Lite by design — deletion is only for your own screen. Use **Edit** if you need to change what they see. |
+| Everything older than 3 days vanished | That's the 72-hour auto-delete working as promised. 🕐 |
+| Forgot the admin password (VPS) | Edit `backend/.env`, change `ADMIN_PASSWORD`, restart: `sudo systemctl restart reyno` |
+| Still stuck? | 📖 [docs/DEPLOY.md](docs/DEPLOY.md) · 🖱️ [docs/CPANEL_MANUAL.md](docs/CPANEL_MANUAL.md) · open a GitHub issue (never share your passwords!) |
+
+---
+
+## 📄 License
+
+Free to use, copy and modify for your own community. The Reyno name and logo
+belong to the Reyno project.
+
+---
+---
+
+<div dir="rtl">
+
+# 🇮🇷 نسخه فارسی
+
+## رینو مسنجر لایت چیه؟ (به زبان خیلی ساده)
+
+«رینو مسنجر لایت» یه پیام‌رسان کوچیک و خصوصیه (مثل واتس‌اپ یا تلگرام کوچولو) که روی سرور یا هاستِ **خودت** نصب می‌شه. یعنی صاحبش خودتی و:
+
+- 👤 ثبت‌نام فقط با **نام کاربری و رمز عبور**ه — نه شماره موبایل می‌خواد، نه ایمیل
+- 🕐 **همه‌چیز بعد از ۷۲ ساعت خودبه‌خود پاک می‌شه** — پیام‌ها، عکس‌ها، فیلم‌ها و ویس‌ها
+- 🆓 **کاملاً رایگانه** — خود برنامه، قفل امنیتی (SSL) و همه آموزش‌ها
+- 🇮🇷 **بدون HTTPS هم کار می‌کنه**؛ حتی اگه اینترنت «ملی» بشه، چون به هیچ سایت خارجی‌ای نیاز نداره
+- 🚫 بدون تبلیغ، بدون ردیابی، بدون اینکه شرکتی چت‌هاتو بخونه
+
+**به درد کی می‌خوره؟** خانواده‌ها، دوستا، تیم‌های کوچیک و هر جمعی که یه پیام‌رسان ساده و خصوصی می‌خوان، بدون اینکه شماره موبایلشون رو به کسی بدن.
+
+## چی‌کارا می‌تونه بکنه؟
+
+| | |
+|---|---|
+| 💬 چت دونفره | 👥 ساخت گروه و 📢 کانال، اضافه‌کردن عضو و ادمین‌کردن |
+| 📷 فرستادن عکس | 🎬 فرستادن فیلم **زیر ۱۰ مگابایت** |
+| 🎤 پیام صوتی (ویس) | 😀 استیکر و ری‌اکشن ❤️ |
+| 📍 فرستادن لوکیشن ثابت (یه نقطه روی نقشه) | ✏️ **ویرایش پیام** — ویرایش برای هر دو طرف دیده می‌شه |
+| 🗑️ حذف پیام **فقط برای خودت** | 🗂️ آرشیو کردن چت، 📌 پین‌کردن، 🔕 بی‌صدا کردن |
+| 🔍 پیدا کردن آدما با `@آیدی`، گروه و کانال | 🟢 دیدن اینکه کی آنلاینه |
+| 🚫 بلاک‌کردن مزاحما | 🎨 تم روشن و تاریک |
+
+> ⚠️ **توجه، این یه تصمیم عمدیه:** نسخه لایت **«حذف برای همه» نداره**.
+> وقتی پیامی رو فرستادی، طرف مقابل نسخش رو داره تا وقتی ۷۲ ساعتش تموم بشه؛
+> تو فقط می‌تونی از صفحه **خودت** پاکش کنی (و همیشه می‌تونی **ویرایشش** کنی).
+> «حذف برای طرف مقابل» مال نسخه کامل (Full) هست.
+
+## نصب — راهی که به تو می‌خوره رو انتخاب کن
+
+> 🧭 **لازم نیست برنامه‌نویس باشی.** از جدول زیر ردیف خودت رو پیدا کن و قدم‌به‌قدم برو جلو. همه راه‌ها رایگانن.
+
+| تو چی داری؟ | این راه رو برو | چقدر طول می‌کشه؟ | ترمینال (صفحه سیاه) لازمه؟ |
+|---|---|---|---|
+| سرور لینوکسی (VPS) + دامنه | راه ۱ | حدود ۵ دقیقه | فقط یه کپی‌پیست |
+| سرور لینوکسی، **بدون دامنه** (فقط یه آی‌پی مثل `185.2.3.4`) | راه ۲ | حدود ۵ دقیقه | فقط یه کپی‌پیست |
+| سرور لینوکسی، **ساده‌ترین حالت** (بدون SSL، فقط HTTP) | راه ۳ | حدود ۵ دقیقه | فقط یه کپی‌پیست |
+| هاست اشتراکی cPanel و با ترمینال مشکلی نداری | فایل `cpanel-setup.sh` | حدود ۵ دقیقه | بله |
+| هاست اشتراکی cPanel و از ترمینال خوشت نمیاد 🖱️ | [📖 آموزش تصویری cPanel بدون ترمینال](docs/CPANEL_MANUAL.md) | حدود ۱۵ دقیقه | **اصلاً** |
+
+### راه ۱ — سرور + دامنه
+
+۱. توی سایتی که دامنه رو ازش خریدی، دامنه رو به آی‌پی سرورت وصل کن (رکورد A — خود سایت فروشنده راهنماییش کرده، یه فرم کوچیکه).
+
+۲. به سرور وصل شو و این یه خط رو پیست کن:
 
 ```bash
-git clone https://github.com/2052mam/test.git reyno-lite && cd reyno-lite
-bash install.sh
+git clone YOUR-REPO-URL reyno-lite && cd reyno-lite && bash install.sh
 ```
 
-Answer 3 prompts (domain, admin username, admin password). The script installs everything, starts the service, sets the hourly 72-hour cleanup, configures Nginx, and — if you gave a domain — gets a **free Let's Encrypt SSL certificate** automatically. Then open `https://yourdomain.com`.
+۳. گزینه **۱** رو بزن، دامنه‌ت رو بنویس، یه نام کاربری و رمز برای مدیر انتخاب کن — بقیه‌ش رو خود اسکریپت انجام می‌ده، حتی گرفتن **قفل امنیتی رایگان (SSL)** رو 🔒.
 
-**SSL manually later:** `sudo certbot --nginx -d yourdomain.com` (free, auto-renews).
+### راه ۲ — سرور بدون دامنه، فقط با آی‌پی (مثل پنل 3x-ui)
 
-## 🌐 Quick start — cPanel shared hosting
+لازم نیست دامنه بخری! این دستور رو بزن و گزینه **۲** رو انتخاب کن:
 
 ```bash
-bash cpanel-setup.sh
-```
-Then in cPanel: **Setup Python App** (root `backend`, startup `passenger_wsgi.py`, entry `application`) → **SSL/TLS → Let's Encrypt → Issue** → turn on **Force HTTPS**. Add the hourly cron printed by the script. Full screenshots-style walkthrough: [`docs/DEPLOY.md`](docs/DEPLOY.md).
-
-## 📱 User guide (for everyone)
-
-1. Open your server's link in any browser. **Create account** → pick a username & password (that's all — write the password down, there's no phone/email recovery by design).
-2. To find someone: type their **@username** in Search → tap → chat.
-3. **＋** creates a group/channel; in a chat tap **ℹ** to add members or make someone an admin.
-4. Camera/＋ button sends photo/video (video must be <10 MB — trim it in your phone gallery first if bigger). 🎙 records voice. ☺ stickers. ⌖ sends your (static) location.
-5. Long-tap/hover a message for Reply / Edit / Delete. *Delete for everyone* removes it for both sides.
-6. Remember: **everything auto-deletes after 72 hours** — save anything important elsewhere.
-
-## 🔒 Privacy & safety design
-
-- Message text & location labels are **Fernet-encrypted at rest** (key derived from your server secret) — a stolen DB file doesn't reveal chats.
-- Uploaded photos are **EXIF/GPS-stripped**; original device filenames are never stored; IPs are only ever hashed for rate-limiting.
-- Admin panel/API expose **zero** user data — no profiles, chats, messages, or activity; only add/remove user + storage cleanup.
-- Logins are rate-limited, passwords hashed (Werkzeug scrypt), admin login uses constant-time compare + CSRF, security headers/HSTS on HTTPS.
-- Honest limit: this is transport-HTTPS + encrypted-at-rest, **not** end-to-end encryption — the server operator's host still runs the code. Don't oversell it; keep your VPS login secure.
-
-## 🧑‍💼 Admin panel
-
-Open `/admin`, sign in with the credentials from install. You can: add a user, remove a user (type their username), purge >72h data, or clear all server storage. Nothing else exists — by design.
-
-## 🧪 Tests
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install -r backend/requirements.txt pytest Pillow
-PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q   # 6 passed
+git clone YOUR-REPO-URL reyno-lite && cd reyno-lite && bash install.sh
 ```
 
-Optional Flutter Web build (same API/UI): install Flutter, then `flutter build web` — see `lib/main.dart`. The zero-install served web app at `/` needs no build step and is the recommended route for cPanel.
+نصب‌کننده خودش برای آی‌پی سرورت **گواهی SSL رایگان** می‌گیره (مثل 3x-ui؛ خودش هم تمدید می‌شه). بعد فقط این آدرس رو باز کن:
 
-## 📁 Layout
+```
+https://آی‌پی-سرور-تو/
+```
 
-`backend/` Flask API + admin + served web app · `lib/` Flutter Web · `install.sh` VPS one-command · `cpanel-setup.sh` shared hosting · `docs/DEPLOY.md` step-by-step.
+### راه ۳ — ساده‌ترین حالت: بدون SSL (فقط HTTP)
 
-<div align="center"><img src="assets/icons/app_icon.png" width="72"><br><b>Reyno Messenger Lite — small, honest, yours.</b></div>
+همون دستور بالا رو بزن و این بار گزینه **۳** رو انتخاب کن. تموم شد! آدرس سایتت می‌شه:
+
+```
+http://آی‌پی-سرور-تو/
+```
+
+این حالت رو عمداً گذاشتیم: **اگه یه روز اینترنت ملی شد**، سایت‌های خارجیِ صادرکننده گواهی ممکنه در دسترس نباشن — ولی پیام‌رسان تو به هیچ‌چیز خارجی‌ای نیاز نداره و به کارش ادامه می‌ده. (توی شبکه خصوصی خودت خطر HTTP کمه؛ ولی روی اینترنت باز، راه ۱ یا ۲ امن‌ترن.)
+
+### 🖱️ هاست cPanel بدون حتی یه دونه دستور
+
+آموزش قدم‌به‌قدم و کلیکی رو اینجا بخون: **[docs/CPANEL_MANUAL.md](docs/CPANEL_MANUAL.md)** — یه فایل زیپ آپلود می‌کنی، چند تا دکمه می‌زنی، تموم. جزئیات کامل نصب و رفع اشکال هم توی **[docs/DEPLOY.md](docs/DEPLOY.md)** هست.
+
+## قفل امنیتی (SSL) — سه انتخاب رایگان
+
+| انتخاب | آدرسی که مردم باز می‌کنن | هزینه | نکته |
+|---|---|---|---|
+| دامنه + Let's Encrypt | `https://chat.example.com` | رایگان | مطمئن‌ترین؛ خودش تمدید می‌شه |
+| **گواهی برای آی‌پی** (مثل 3x-ui) | `https://185.2.3.4` | رایگان | دامنه نمی‌خواد؛ خودش تمدید می‌شه |
+| بدون SSL (فقط HTTP) | `http://185.2.3.4` | رایگان | روی اینترنت ملی و شبکه داخلی کار می‌کنه؛ ولی چت‌ها توی مسیر رمزنگاری نمی‌شن |
+
+**یه توضیح صادقانه:** نسخه لایت پیام‌های ذخیره‌شده روی دیسک سرور رو رمزنگاری می‌کنه و اطلاعات GPS عکس‌ها رو پاک می‌کنه، اما مثل سیگنال «رمزنگاری سرتاسری» نیست. یعنی HTTPS چت‌ها رو توی مسیر امن می‌کنه، ولی صاحب سرور از نظر فنی می‌تونه به داده‌های ذخیره‌شده دسترسی داشته باشه. برای بیشتر جمع‌ها این کافیه — فقط خواهشاً به کاربراتون قولِ بیشتر از این ندین.
+
+## روش استفاده (به زبان ساده)
+
+۱. سایت رو باز کن و **«ساخت حساب»** رو بزن. یه نام کاربری (مثل `sara_2026`) و یه رمز انتخاب کن. همین! نه موبایل، نه ایمیل، نه عکس پروفایل.
+
+۲. برای پیدا کردن دوستت، بالای صفحه `@نام‌کاربری` اون رو توی کادر جست‌وجو بنویس.
+
+۳. روی اسمش بزن ← پیام بنویس ← بفرست. با دکمه 📷 عکس و فیلم، با 🎤 ویس و با 📍 لوکیشن می‌فرستی.
+
+۴. اشتباه تایپی داشتی؟ **ویرایش** کن؛ برای هر دو طرف درست می‌شه. می‌خوای فقط از صفحه **خودت** پاک بشه؟ **«حذف برای من»** رو بزن. (روی صفحه طرف مقابل می‌مونه — دلیلش رو بالاتر گفتیم.)
+
+۵. دکمه **ℹ️** تنظیمات گروه رو باز می‌کنه: اضافه‌کردن عضو، ادمین‌کردن، آرشیو کردن چت یا بلاک‌کردن یه نفر.
+
+۶. یادت نره: **همه‌چیز بعد از ۷۲ ساعت خودش پاک می‌شه.** چیزای مهم رو یه جای دیگه نگه دار!
+
+**صفحه مدیر:** آدرس `آدرس-سایتت/admin` رو باز کن و با نام کاربری و رمز مدیری که موقع نصب انتخاب کردی وارد شو. این صفحه فقط سه تا کار می‌تونه بکنه: **اضافه‌کردن کاربر، حذف کاربر و خالی‌کردن فضای سرور**. به هیچ وجه نمی‌تونه پیام‌های کسی رو بخونه.
+
+## مقایسه نسخه لایت و کامل
+
+| امکان | لایت (همین، رایگان) | نسخه کامل |
+|---|:---:|:---:|
+| پیام متنی، عکس، فیلم زیر ۱۰ مگ، ویس، استیکر | ✅ | ✅ |
+| گروه و کانال و ادمین | ✅ | ✅ |
+| ویرایش پیام (برای هر دو طرف) | ✅ | ✅ |
+| **حذف فقط برای خودت** | ✅ | ✅ |
+| **حذف برای طرف مقابل** | ❌ | ✅ |
+| آرشیو کردن چت | ✅ | ✅ |
+| جست‌وجو با آیدی، گروه و کانال؛ دیدن آنلاین‌ها؛ بلاک | ✅ | ✅ |
+| کار کردن با HTTP ساده (آماده برای اینترنت ملی) | ✅ | ✅ |
+| ثبت‌نام با شماره موبایل، پروفایل و عکس و بیو | ❌ | ✅ |
+| نوتیفیکیشن، گیف، فایل و سند، نظرسنجی، چت محرمانه | ❌ | ✅ |
+| حالت روح، رمز دو مرحله‌ای، پوشه‌بندی، پیام زمان‌دار و یک‌بارمصرف | ❌ | ✅ |
+| قیمت | **رایگان** | — |
+
+## اگه یه جا گیر کردی 😟
+
+| مشکل | اول اینو امتحان کن |
+|---|---|
+| سایت باز نمی‌شه | آدرس رو دقیق چک کن — اولش `http://` هست یا `https://`؟ اون یکی رو هم امتحان کن. |
+| می‌گه «فیلم خیلی بزرگه» | فیلم باید **زیر ۱۰ مگابایت** باشه — کوتاهش کن یا کیفیتش رو بیار پایین. |
+| پیام رو پاک کردم ولی دوستم هنوز می‌بینتش | طبیعیه! توی نسخه لایت حذف فقط برای صفحه خودته. اگه می‌خوای اون چیزی که می‌بینه عوض بشه، از **ویرایش** استفاده کن. |
+| چیزای قدیمی‌تر از ۳ روز غیب شدن | این همون پاک‌شدن خودکار ۷۲ ساعته‌ست و داره درست کارش رو می‌کنه 🕐 |
+| رمز مدیر رو یادم رفته (سرور) | فایل `backend/.env` رو باز کن، `ADMIN_PASSWORD` رو عوض کن و این دستور رو بزن: `sudo systemctl restart reyno` |
+| باز هم نشد؟ | 📖 [docs/DEPLOY.md](docs/DEPLOY.md) · 🖱️ [docs/CPANEL_MANUAL.md](docs/CPANEL_MANUAL.md) · یا توی گیت‌هاب Issue باز کن (هیچ‌وقت رمزت رو برای کسی نفرست!) |
+
+## مجوز
+
+استفاده، کپی و تغییرش برای جمع خودت آزاده. اسم و لوگوی «رینو» متعلق به پروژه رینو هستن.
+
+</div>

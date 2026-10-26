@@ -2,25 +2,36 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Reyno Messenger Lite</title><link rel="icon" href="/assets/icons/app_icon.png"><link rel="manifest" href="/manifest.json">
 <style>
-:root{--bg:#0E1621;--surface:#17212B;--card:#1E2C3A;--peer:#242F3D;--self:#2B5278;--border:#27384A;--text:#fff;--muted:#8b9bb8;--primary:#2481CC}
-body.light{--bg:#F4F6FB;--surface:#fff;--card:#fff;--peer:#fff;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;--self:#2481CC}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
-button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
-#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.authcard{width:min(420px,100%);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;text-align:center}
-.authcard img{width:220px;max-width:80%}.field{width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin:8px 0}
-.btn{background:var(--primary);color:#fff;border:0;border-radius:12px;padding:12px 18px;font-weight:700;width:100%}.link{background:none;border:0;color:var(--primary);font-weight:700}
+/* ===== Reyno original design system (copied 1:1 from the full app) =====
+   Source of truth: lib/core/theme/app_theme.dart + chat_design.dart +
+   message_bubble.dart in the original Reyno project. Do not change values. */
+:root{--primary:#2481CC;--primary-dark:#1A65A4;--secondary:#00ACC1;--accent:#10B981;--warning:#F59E0B;--danger:#EF4444;--purple:#8B5CF6;--cyan:#4FC3F7;
+--bg:#0E1621;--surface:#17212B;--card:#1E2C3A;--peer:#1E2C3A;--border:#27384A;--text:#fff;--muted:#94A3B8;--sender:#64B5F6;
+--self-bg:#2B5278;--self-grad:linear-gradient(135deg,#2E5B88,#264C72);--shadow:rgba(0,0,0,.2);--fab:#42A5F5}
+body.light{--bg:#F4F6FB;--surface:#fff;--card:#fff;--peer:#fff;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;--sender:#0284C7;--self-bg:#2481CC;--self-grad:linear-gradient(135deg,#2AABEE,#229ED9,#2481CC);--shadow:rgba(0,0,0,.04);--fab:#2481CC}
+*{box-sizing:border-box}body{margin:0;font-family:'Vazirmatn',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:21px}.authcard{width:min(420px,100%);background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;box-shadow:0 1px 4px var(--shadow)}
+.authcard img{width:220px;max-width:80%}.field{width:100%;padding:14px 18px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);margin:8px 0}
+.field:focus{outline:none;border-color:var(--primary);border-width:1.8px}
+.btn{background:var(--primary);color:#fff;border:0;border-radius:14px;padding:14px 24px;font-weight:600;font-size:15px;width:100%}.link{background:none;border:0;color:var(--primary);font-weight:600}
 #app{display:grid;grid-template-columns:360px 1fr;height:100vh}aside{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
-header{padding:14px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}header img{height:34px}
-.search{flex:1;padding:10px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--text)}
-.iconbtn{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:50%;width:38px;height:38px}
-#chats{overflow:auto;flex:1}.chatrow{display:flex;gap:12px;padding:13px;cursor:pointer;border-bottom:1px solid var(--border)}.chatrow:hover{background:var(--card)}
-.avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#2AABEE,#2481CC);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}
-.online{color:#10B981;font-size:12px}.count{background:var(--primary);color:#fff;border-radius:99px;padding:2px 7px;font-size:12px}
-main{display:flex;flex-direction:column;min-width:0}#msgs{flex:1;overflow:auto;padding:16px}#composer{display:flex;gap:8px;padding:10px;background:var(--surface);border-top:1px solid var(--border);align-items:flex-end}
-#text{flex:1;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--text);padding:11px 15px;resize:none;max-height:110px}
-.bubble{max-width:min(680px,78%);margin:6px 0;padding:10px 13px;border-radius:18px;background:var(--peer);border:1px solid var(--border);width:fit-content}.mine{margin-left:auto;background:var(--self);color:#fff}
+header{padding:13px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}header img{height:34px}
+.search{flex:1;padding:10px 18px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text)}
+.iconbtn{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:50%;width:38px;height:38px;flex:none}
+#chats{overflow:auto;flex:1}.chatrow{display:flex;gap:13px;padding:13px;cursor:pointer;border-bottom:1px solid var(--border)}.chatrow:hover{background:var(--card)}
+.avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#2AABEE,#229ED9,#2481CC);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}
+.online{color:var(--accent);font-size:12px}.count{background:var(--primary);color:#fff;border-radius:99px;padding:2px 7px;font-size:12px}
+main{display:flex;flex-direction:column;min-width:0;background:var(--bg)}#msgs{flex:1;overflow:auto;padding:8px}
+/* Message bubble — exact original geometry: radius 21px, 3px tail corner,
+   padding 13x8, margin 3x8, max-width min(viewport/1.618, 720px), font 15px */
+#composer{display:flex;gap:8px;padding:8px;background:var(--surface);border-top:1px solid var(--border);align-items:flex-end}
+#text{flex:1;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);padding:14px 18px;resize:none;max-height:110px}
+.bubble{max-width:min(61.8%,720px);margin:3px 8px;padding:8px 13px;border-radius:21px;background:var(--peer);border:.8px solid var(--border);width:fit-content;font-size:15px;line-height:1.45;box-shadow:0 1.5px 4px var(--shadow);border-bottom-left-radius:3px}
+.mine{margin-left:auto;background:var(--self-grad);color:#fff;border-color:transparent;border-bottom-left-radius:21px;border-bottom-right-radius:3px}
+@media(max-width:600px){.bubble{max-width:82%}}
 .bubble img,.bubble video{max-width:320px;max-height:340px;border-radius:12px;display:block}.meta{font-size:11px;opacity:.75;text-align:right;margin-top:5px}.actions{font-size:12px}.actions button{background:none;border:0;color:inherit;opacity:.8}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9}.box{background:var(--surface);color:var(--text);padding:22px;border-radius:18px;width:min(440px,92vw)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9}.box{background:var(--surface);color:var(--text);padding:22px;border-radius:22px;width:min(440px,92vw)}
 .small{font-size:12px;color:var(--muted)} .err{color:#f87171}
 @media(max-width:760px){#app{grid-template-columns:1fr}aside.hiddenm{display:none}main.hiddenm{display:none}}
 </style></head><body>
@@ -52,10 +63,10 @@ function renderChats(){$('#chats').innerHTML=chats.map(c=>`<div class="chatrow" 
 window.openChat=async(id)=>{cur=chats.find(c=>c.id===id)||{id}; $('#main').classList.remove('hiddenm'); $('#side').classList.add('hiddenm'); await loadMsgs(); let j=await api('/chats/'+id); cur=j.chat; $('#htitle').textContent=cur.name||'Chat'; $('#hav').textContent=(cur.name||'R')[0]; $('#hsub').textContent=cur.chat_type==='private'?(cur.other_user?.is_online?'online':'last seen '+new Date(cur.other_user?.last_seen||'').toLocaleString()):cur.chat_type+' · '+(cur.members_count||0)+' members'};
 $('#backBtn').onclick=()=>{$('#main').classList.add('hiddenm');$('#side').classList.remove('hiddenm');cur=null;loadChats()};
 async function loadMsgs(quiet){if(!cur)return; try{let j=await api('/messages/chat/'+cur.id); $('#msgs').innerHTML=j.messages.map(m=>bubble(m)).join(''); $('#msgs').scrollTop=$('#msgs').scrollHeight; api('/messages/read/'+cur.id,{method:'POST',body:{}}).catch(()=>{})}catch(e){if(!quiet)alert(e.message)}}
-function bubble(m){let mine=m.sender_id===user?.id; let media=''; if(m.media_url&&m.message_type==='image')media=`<img src="${m.media_url}">`; if(m.media_url&&m.message_type==='video')media=`<video controls src="${m.media_url}"></video>`; if(m.media_url&&m.message_type==='voice')media=`<audio controls src="${m.media_url}"></audio>`; if(m.message_type==='location')media=`<a target="_blank" href="https://www.openstreetmap.org/?mlat=${m.latitude}&mlon=${m.longitude}#map=15/${m.latitude}/${m.longitude}">📍 ${esc(m.location_title||'Static location')}</a>`; return `<div class="bubble ${mine?'mine':''}" data-id="${m.id}">${m.reply_to?`<div class="small">↩ ${esc(m.reply_to.content||'')}</div>`:''}${media}<div>${esc(m.content||'')}</div><div class="meta">${m.is_edited?'edited ':''}${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${mine?(m.status==='read'?'✓✓':'✓'):''}</div><div class="actions"><button onclick="replyMsg('${m.id}')">Reply</button><button onclick="reactMsg('${m.id}')">❤️</button>${mine?`<button onclick="editMsg('${m.id}')">Edit</button>`:''}<button onclick="delMsg('${m.id}',false)">Delete for me</button><button onclick="delMsg('${m.id}',true)">Delete for everyone</button><button onclick="forwardMsg('${m.id}')">Forward</button><button onclick="pinMsg('${m.id}')">Pin</button></div></div>`}
+function bubble(m){let mine=m.sender_id===user?.id; let media=''; if(m.media_url&&m.message_type==='image')media=`<img src="${m.media_url}">`; if(m.media_url&&m.message_type==='video')media=`<video controls src="${m.media_url}"></video>`; if(m.media_url&&m.message_type==='voice')media=`<audio controls src="${m.media_url}"></audio>`; if(m.message_type==='location')media=`<a target="_blank" href="https://www.openstreetmap.org/?mlat=${m.latitude}&mlon=${m.longitude}#map=15/${m.latitude}/${m.longitude}">📍 ${esc(m.location_title||'Static location')}</a>`; return `<div class="bubble ${mine?'mine':''}" data-id="${m.id}">${m.reply_to?`<div class="small">↩ ${esc(m.reply_to.content||'')}</div>`:''}${media}<div>${esc(m.content||'')}</div><div class="meta">${m.is_edited?'edited ':''}${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${mine?(m.status==='read'?'✓✓':'✓'):''}</div><div class="actions"><button onclick="replyMsg('${m.id}')">Reply</button><button onclick="reactMsg('${m.id}')">❤️</button>${mine?`<button onclick="editMsg('${m.id}')">Edit</button>`:''}<button onclick="delMsg('${m.id}')">Delete for me</button><button onclick="forwardMsg('${m.id}')">Forward</button><button onclick="pinMsg('${m.id}')">Pin</button></div></div>`}
 window.replyMsg=id=>{replyTo=id;$('#text').focus()}; window.reactMsg=async id=>{await api('/reactions/'+id+'/reaction',{method:'POST',body:{emoji:'❤️'}});loadMsgs(true)};
 window.editMsg=async id=>{let t=prompt('Edit message'); if(t) {await api('/messages/'+id,{method:'PUT',body:{content:t}});loadMsgs(true)}};
-window.delMsg=async(id,all)=>{if(confirm(all?'Delete for everyone?':'Delete only for you?')){await api('/messages/'+id,{method:'DELETE',body:{for_all:all}});loadMsgs(true);loadChats(true)}};
+window.delMsg=async id=>{if(confirm('Delete this message only for you? The other side will still see it.')){await api('/messages/'+id,{method:'DELETE',body:{}});loadMsgs(true);loadChats(true)}};
 window.forwardMsg=async id=>{let t=prompt('Target chat ID (from chat info)'); if(t)await api('/messages/forward',{method:'POST',body:{message_id:id,target_chat_id:t}})};
 window.pinMsg=async id=>{await api('/chats/'+cur.id+'/pins/'+id,{method:'POST',body:{}});alert('Pinned')};
 async function sendText(){let t=$('#text').value.trim(); if(!t||!cur)return; await api('/messages/chat/'+cur.id,{method:'POST',body:{message_type:'text',content:t,reply_to_id:replyTo}}); $('#text').value='';replyTo=null;loadMsgs(true);loadChats(true)}

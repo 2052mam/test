@@ -23,3 +23,18 @@ SSL: automatic with a domain (free Let's Encrypt). Renewals are automatic via ce
 - Video rejected: it must be **under 10 MB** — trim/compress on the phone first.
 - 502 on VPS: `sudo systemctl status reyno nginx`
 - Forgot admin password: edit `backend/.env` (ADMIN_PASSWORD), restart app.
+
+## No domain? Free SSL for your IP (like 3x-ui)
+Run `bash install.sh`, choose **2**, or manually: `bash scripts/ip-ssl.sh YOUR_IP`
+then point nginx 443 at `/etc/reyno-ssl/fullchain.pem` + `privkey.pem`.
+It first tries a free trusted Let's Encrypt IP certificate via acme.sh
+(short-lived, auto-renewing); if unavailable it creates a free self-signed
+certificate (browser shows a one-time warning). 
+
+## No SSL at all (HTTP mode) — national-network ready
+Choose **3** in `install.sh` (or set `SESSION_COOKIE_SECURE=false` and
+`FORCE_HTTPS=false`). The app never forces HTTPS and sends HSTS only on
+HTTPS responses, so it keeps working on LANs and national-only networks.
+
+## cPanel without a terminal
+See [CPANEL_MANUAL.md](CPANEL_MANUAL.md) — a click-only guide.
