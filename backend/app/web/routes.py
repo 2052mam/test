@@ -1,6 +1,6 @@
 """Serves the Reyno Messenger Lite browser web application and static assets."""
 import os
-from flask import Blueprint, send_from_directory, render_template, jsonify
+from flask import Blueprint, send_from_directory, Response, jsonify
 
 web_bp = Blueprint(
     'web',
